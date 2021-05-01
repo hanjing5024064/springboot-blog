@@ -3,6 +3,7 @@ package com.itheima.service.impl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.itheima.dao.ArticleMapper;
+import com.itheima.dao.CommentMapper;
 import com.itheima.dao.StatisticMapper;
 import com.itheima.model.domain.Article;
 import com.itheima.model.domain.Statistic;
@@ -32,6 +33,8 @@ public class ArticleServiceImpl implements IArticleService {
     private StatisticMapper statisticMapper;
     @Autowired
     private RedisTemplate redisTemplate;
+    @Autowired
+    private CommentMapper commentMapper;
 
     // 分页查询文章列表
     @Override
@@ -92,6 +95,26 @@ public class ArticleServiceImpl implements IArticleService {
         // 插入文章，同时插入文章统计数据
         articleMapper.publishArticle(article);
         statisticMapper.addStatistic(article);
+    }
+
+    // 更新文章
+    @Override
+    public void updateArticleWithId(Article article) {
+        article.setModified(new Date());
+        articleMapper.updateArticleWithId(article);
+        redisTemplate.delete("article_" + article.getId());
+    }
+
+    // 删除文章
+    @Override
+    public void deleteArticleWithId(int id) {
+        // 删除文章的同时，删除对应的缓存
+        articleMapper.deleteArticleWithId(id);
+        redisTemplate.delete("article_" + id);
+        // 同时删除对应文章的统计数据
+        statisticMapper.deleteStatisticWithId(id);
+        // 同时删除对应文章的评论数据
+        commentMapper.deleteCommentWithId(id);
     }
 }
 

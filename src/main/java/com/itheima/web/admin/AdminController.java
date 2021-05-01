@@ -78,5 +78,42 @@ public class AdminController {
         return "back/article_list";
     }
 
+    // 向文章修改页面跳转
+    @GetMapping(value = "/article/{id}")
+    public String editArticle(@PathVariable("id") String id, HttpServletRequest request) {
+        Article article = articleServiceImpl.selectArticleWithId(Integer.parseInt(id));
+        request.setAttribute("contents", article);
+        request.setAttribute("categories", article.getCategories());
+        return "back/article_edit";
+    }
+
+    // 文章修改处理
+    @PostMapping(value = "/article/modify")
+    @ResponseBody
+    public ArticleResponseData modifyArticle(Article article) {
+        try {
+            articleServiceImpl.updateArticleWithId(article);
+            logger.info("文章更新成功");
+            return ArticleResponseData.ok();
+        } catch (Exception e) {
+            logger.error("文章更新失败，错误信息: "+e.getMessage());
+            return ArticleResponseData.fail();
+        }
+    }
+
+    // 文章删除
+    @PostMapping(value = "/article/delete")
+    @ResponseBody
+    public ArticleResponseData delete(@RequestParam int id) {
+        try {
+            articleServiceImpl.deleteArticleWithId(id);
+            logger.info("文章删除成功");
+            return ArticleResponseData.ok();
+        } catch (Exception e) {
+            logger.error("文章删除失败，错误信息: "+e.getMessage());
+            return ArticleResponseData.fail();
+        }
+    }
+
 }
 
