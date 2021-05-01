@@ -7,12 +7,14 @@ import com.itheima.dao.StatisticMapper;
 import com.itheima.model.domain.Article;
 import com.itheima.model.domain.Statistic;
 import com.itheima.service.IArticleService;
+import com.vdurmont.emoji.EmojiParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -77,6 +79,19 @@ public class ArticleServiceImpl implements IArticleService {
             }
         }
         return article;
+    }
+
+    // 发布文章
+    @Override
+    public void publish(Article article) {
+        // 去除表情
+        article.setContent(EmojiParser.parseToAliases(article.getContent()));
+        article.setCreated(new Date());
+        article.setHits(0);
+        article.setCommentsNum(0);
+        // 插入文章，同时插入文章统计数据
+        articleMapper.publishArticle(article);
+        statisticMapper.addStatistic(article);
     }
 }
 

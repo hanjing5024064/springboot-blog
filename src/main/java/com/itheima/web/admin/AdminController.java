@@ -47,5 +47,36 @@ public class AdminController {
         return "back/index";
     }
 
+    // 向文章发表页面跳转
+    @GetMapping(value = "/article/toEditPage")
+    public String newArticle( ) {
+        return "back/article_edit";
+    }
+    // 发表文章
+    @PostMapping(value = "/article/publish")
+    @ResponseBody
+    public ArticleResponseData publishArticle(Article article) {
+        if (StringUtils.isBlank(article.getCategories())) {
+            article.setCategories("默认分类");
+        }
+        try {
+            articleServiceImpl.publish(article);
+            logger.info("文章发布成功");
+            return ArticleResponseData.ok();
+        } catch (Exception e) {
+            logger.error("文章发布失败，错误信息: "+e.getMessage());
+            return ArticleResponseData.fail();
+        }
+    }
+    // 跳转到后台文章列表页面
+    @GetMapping(value = "/article")
+    public String index(@RequestParam(value = "page", defaultValue = "1") int page,
+                        @RequestParam(value = "count", defaultValue = "10") int count,
+                        HttpServletRequest request) {
+        PageInfo<Article> pageInfo = articleServiceImpl.selectArticleWithPage(page, count);
+        request.setAttribute("articles", pageInfo);
+        return "back/article_list";
+    }
+
 }
 
